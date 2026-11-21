@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>每週一針</title>
-<meta name="description" content="記錄每週施打的時間、部位與劑量，用拉霸轉輪選部位並提示輪替。">
-<meta name="theme-color" content="#F3F6F6" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0E171B" media="(prefers-color-scheme: dark)">
+<meta name="description" content="記錄每週施打的時間、部位與劑量，並提醒你輪替部位。">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="每週一針">
@@ -15,205 +15,212 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <style>
+/* iOS grouped-list look: large title, inset rounded groups on a gray ground, system blue for actions */
 :root{
-  --bg:#F3F6F6; --surface:#FFFFFF; --sunk:#E7EDEE; --fg:#14232A; --muted:#5B6E75;
-  --line:#D3DDDF; --accent:#1F6F78; --accent-ink:#FFFFFF; --accent-soft:#D7ECEE;
-  --gold:#C98A1B; --ok:#2E7D4F; --warn:#B26A00; --bad:#B23B3B;
-  --reel-bg:#0F1D23; --reel-mid:#1c2f36; --reel-fg:#F2F7F7; --reel-dim:#6F858C; --reel-line:#2c444c;
-  --font-body:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
-  --font-num:ui-rounded,"SF Pro Rounded",-apple-system,"Segoe UI",system-ui,sans-serif;
-  --r:14px; color-scheme:light;
+  --bg:#F2F2F7; --card:#FFFFFF; --fill:rgba(118,118,128,.12); --fill2:rgba(118,118,128,.08);
+  --label:#000000; --label2:rgba(60,60,67,.6); --label3:rgba(60,60,67,.3); --sep:rgba(60,60,67,.18);
+  --blue:#007AFF; --red:#FF3B30; --orange:#FF9500; --green:#34C759; --on-blue:#FFFFFF;
+  --seg-sel:#FFFFFF; --bar:rgba(242,242,247,.82);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Helvetica Neue","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --font-d:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --font-r:ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root{
-  --bg:#0E171B; --surface:#152228; --sunk:#1B2B32; --fg:#E6EEF0; --muted:#93A6AC;
-  --line:#2A3C43; --accent:#5CB8C2; --accent-ink:#06262A; --accent-soft:#1B3A40;
-  --gold:#E2A93F; --ok:#5CC287; --warn:#E6A23C; --bad:#E57373;
-  --reel-bg:#070E11; --reel-mid:#14252b; --reel-dim:#5D7278; color-scheme:dark}}
+  --bg:#000000; --card:#1C1C1E; --fill:rgba(118,118,128,.24); --fill2:rgba(118,118,128,.16);
+  --label:#FFFFFF; --label2:rgba(235,235,245,.6); --label3:rgba(235,235,245,.3); --sep:rgba(84,84,88,.6);
+  --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
+  --seg-sel:#636366; --bar:rgba(22,22,24,.82); color-scheme:dark}}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.6;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--label);font-family:var(--font);font-size:17px;line-height:1.35;letter-spacing:-.01em;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
 [hidden]{display:none!important}
-.wrap{max-width:560px;margin:0 auto;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(40px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
-h1{font-size:1.5rem;margin:0;letter-spacing:.02em}
-h2{font-size:1rem;margin:0;font-weight:700;letter-spacing:.04em}
-.sub{color:var(--muted);margin:2px 0 0;font-size:.88rem}
-.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:14px}
-.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.spread{justify-content:space-between}
+button{font:inherit;color:inherit;-webkit-appearance:none;appearance:none}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
-.status{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
-.stat .k{font-size:.75rem;color:var(--muted);letter-spacing:.08em}
-.stat .v{font-family:var(--font-num);font-size:1.35rem;font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums}
-.stat .v small{font-size:.8rem;font-weight:500;color:var(--muted);margin-left:2px}
-.pill{display:inline-block;font-size:.75rem;padding:1px 8px;border-radius:99px;font-weight:500;margin-top:4px}
-.pill.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}
-.pill.warn{color:var(--warn);background:color-mix(in srgb,var(--warn) 16%,transparent)}
-.pill.bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,transparent)}
+/* compact nav bar that fades in on scroll */
+.nav{position:fixed;top:0;left:0;right:0;z-index:10;padding-top:env(safe-area-inset-top,0px);background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid transparent;opacity:0;pointer-events:none;transition:opacity .2s,border-color .2s}
+.nav.show{opacity:1;border-bottom-color:var(--sep)}
+.nav div{height:44px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:17px}
 
-.machine{background:var(--reel-bg);border-radius:18px;padding:14px;display:grid;grid-template-columns:1.2fr 1fr;gap:10px;align-items:stretch}
-.reel-col{display:flex;flex-direction:column;gap:6px;min-width:0}
-.reel-label{color:var(--reel-dim);font-size:.72rem;letter-spacing:.14em;text-align:center}
-.reel{position:relative;height:168px;overflow:hidden;border-radius:10px;background:linear-gradient(var(--reel-bg),var(--reel-mid) 50%,var(--reel-bg));outline:none;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
-.reel:focus-visible{box-shadow:0 0 0 2px var(--gold)}
-.reel::before,.reel::after{content:"";position:absolute;left:0;right:0;height:56px;z-index:2;pointer-events:none}
-.reel::before{top:0;background:linear-gradient(var(--reel-bg),transparent)}
-.reel::after{bottom:0;background:linear-gradient(transparent,var(--reel-bg))}
-.reel .win{position:absolute;left:4px;right:4px;top:56px;height:56px;border-top:1px solid var(--gold);border-bottom:1px solid var(--gold);z-index:1;pointer-events:none;border-radius:4px}
-.track{will-change:transform}
-.cell{height:56px;display:flex;align-items:center;justify-content:center;color:var(--reel-fg);font-size:1.12rem;font-weight:700;white-space:nowrap}
-.cell .u{font-size:.75rem;color:var(--reel-dim);margin-left:3px;font-weight:500}
-.nudge{display:flex;gap:6px}
-.nudge button{flex:1;background:transparent;border:1px solid var(--reel-line);color:var(--reel-fg);border-radius:8px;padding:4px 0;font-size:.8rem;cursor:pointer}
-.lever{width:44px;display:flex;flex-direction:column;align-items:center;background:none;border:0;cursor:pointer;padding:0}
-.lever .shaft{width:8px;height:120px;background:linear-gradient(90deg,#8a9aa0,#d9e2e4,#8a9aa0);border-radius:4px;transform-origin:50% 100%;transition:transform .25s ease-in;margin-top:22px;position:relative}
-.lever .ball{position:absolute;top:-22px;left:50%;width:30px;height:30px;margin-left:-15px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd98a,#C98A1B 55%,#8a5a06)}
-.lever .base{width:30px;height:18px;border-radius:6px 6px 3px 3px;background:var(--reel-line);margin-top:-2px}
-.lever .tag{color:var(--reel-dim);font-size:.7rem;letter-spacing:.1em;margin-top:6px}
-.lever.pulled .shaft{transform:scaleY(-.55)}
-.lever:focus-visible{outline:2px solid var(--gold);outline-offset:4px;border-radius:8px}
-.hint{font-size:.85rem;color:var(--muted);margin:0}
-.hint b{color:var(--accent)}
-.hint b.last{color:var(--bad)}
+.wrap{max-width:600px;margin:0 auto;padding-top:calc(8px + env(safe-area-inset-top,0px));padding-bottom:calc(36px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.date{font-size:13px;font-weight:600;color:var(--label2);text-transform:uppercase;margin:14px 0 0}
+h1{font-family:var(--font-d);font-size:34px;font-weight:700;letter-spacing:.01em;margin:0 0 14px;line-height:1.2}
 
-label.f{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted);flex:1;min-width:140px}
-input[type=datetime-local],input[type=text],textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:9px 10px;width:100%;min-height:42px;-webkit-appearance:none;appearance:none}
-input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.btn{font:inherit;font-weight:700;border-radius:10px;padding:11px 16px;border:1px solid transparent;cursor:pointer}
-.btn.primary{background:var(--accent);color:var(--accent-ink);width:100%;font-size:1rem}
-.btn.ghost{background:transparent;color:var(--muted);border-color:var(--line);font-weight:500;padding:7px 12px;font-size:.85rem}
+.sec-h{display:flex;justify-content:space-between;align-items:flex-end;font-size:13px;color:var(--label2);padding:0 16px 7px;margin-top:28px;gap:10px}
+.sec-h .act{background:none;border:0;color:var(--blue);font-size:15px;padding:0;cursor:pointer}
+.sec-f{font-size:13px;color:var(--label2);padding:7px 16px 0;margin:0}
+.sec-f b{font-weight:600;color:var(--label)}
+.card{background:var(--card);border-radius:12px;overflow:hidden}
+.pad{padding:14px 16px}
 
-.doses{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.dose-btn{position:relative;font:inherit;background:var(--sunk);color:var(--fg);border:2px solid transparent;border-radius:12px;min-height:52px;padding:8px 6px;cursor:pointer;display:flex;align-items:baseline;justify-content:center;gap:3px;transition:transform .1s}
-.dose-btn:active{transform:scale(.97)}
-.dose-btn .dv{font-family:var(--font-num);font-weight:700;font-size:1.1rem;font-variant-numeric:tabular-nums}
-.dose-btn .du{font-size:.75rem;color:var(--muted)}
-.dose-btn .dp{position:absolute;top:3px;right:6px;font-size:.62rem;color:var(--muted)}
-.dose-btn.sel{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 16%,var(--surface))}
-#pickSum b{color:var(--fg)}
-.pick-head{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;font-weight:700;gap:10px;flex-wrap:wrap}
-.pick-head .legend{font-weight:400}
-.map{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.site{position:relative;background:var(--sunk);border:2px solid transparent;border-radius:12px;padding:10px 12px;min-height:58px;cursor:pointer;text-align:left;font:inherit;color:var(--fg);min-width:0;display:flex;flex-direction:column;justify-content:center;gap:1px;transition:transform .1s}
-.site:active{transform:scale(.97)}
-.site .nm{font-weight:700;font-size:1.05rem;line-height:1.3}
-.site .m{font-size:.75rem;color:var(--muted)}
-.site .badge{position:absolute;top:8px;right:10px;font-size:.7rem;font-weight:700;padding:0 7px;border-radius:99px}
-.site.last .badge{color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,transparent)}
-.site.rec .badge{color:var(--accent);background:var(--surface)}
-.site.rec{background:var(--accent-soft)}
-.site.sel{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 16%,var(--surface))}
-.site.sel .nm::after{content:" ✓";color:var(--gold)}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.75rem;color:var(--muted)}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+/* summary */
+.sum{display:flex;align-items:center;gap:16px;padding:16px}
+.sum .txt{flex:1;min-width:0}
+.sum .k{font-size:15px;font-weight:600;color:var(--blue);display:flex;align-items:center;gap:6px}
+.sum .k svg{width:16px;height:16px}
+.sum .big{font-family:var(--font-r);font-size:34px;font-weight:700;letter-spacing:-.01em;line-height:1.15;margin-top:4px;font-variant-numeric:tabular-nums}
+.sum .big small{font-family:var(--font);font-size:17px;font-weight:600;color:var(--label2);margin-left:6px}
+.sum .st{font-size:15px;color:var(--label2);margin-top:2px}
+.sum .st.warn{color:var(--orange);font-weight:600}
+.sum .st.bad{color:var(--red);font-weight:600}
+.ring{width:64px;height:64px;flex:none;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .tr{stroke:var(--fill)}
+.ring .pr{stroke:var(--blue);transition:stroke-dashoffset .5s ease}
+.ring.warn .pr{stroke:var(--orange)} .ring.bad .pr{stroke:var(--red)}
+.ring span{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-r);font-weight:700;font-size:20px;line-height:1}
+.ring span small{font-family:var(--font);font-size:10px;font-weight:600;color:var(--label2);margin-top:2px}
+.stats{display:grid;grid-template-columns:1fr 1fr;border-top:.5px solid var(--sep)}
+.stats>div{padding:11px 16px}
+.stats>div+div{border-left:.5px solid var(--sep)}
+.stats .k{font-size:13px;color:var(--label2)}
+.stats .v{font-family:var(--font-r);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.stats .v small{font-family:var(--font);font-size:15px;font-weight:600;color:var(--label2);margin-left:3px}
 
-.banner{background:color-mix(in srgb,var(--gold) 14%,transparent);border-radius:10px;padding:8px 12px;font-size:.85rem;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.banner button{font:inherit;font-size:.8rem;background:none;border:1px solid var(--gold);color:var(--fg);border-radius:8px;padding:3px 10px;cursor:pointer}
+/* site tiles */
+.map{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.site{position:relative;background:var(--fill2);border:0;border-radius:12px;padding:12px 14px;min-height:68px;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:center;gap:2px;transition:transform .12s,background-color .15s}
+.site:active{transform:scale(.96)}
+.site .nm{font-size:17px;font-weight:600}
+.site .m{font-size:13px;color:var(--label2)}
+.site .badge{position:absolute;top:10px;right:10px;font-size:11px;font-weight:600;padding:2px 7px;border-radius:99px}
+.site.rec .badge{color:var(--green);background:color-mix(in srgb,var(--green) 16%,transparent)}
+.site.last .badge{color:var(--red);background:color-mix(in srgb,var(--red) 13%,transparent)}
+.site.sel{background:var(--blue);color:var(--on-blue)}
+.site.sel .m{color:rgba(255,255,255,.8)}
+.site.sel .badge{color:#fff;background:rgba(255,255,255,.22)}
+.site .ck{position:absolute;bottom:10px;right:12px;width:20px;height:20px;opacity:0;transform:scale(.6);transition:.15s}
+.site.sel .ck{opacity:1;transform:none}
+
+/* segmented control */
+.seg-wrap{padding:0 16px 14px}
+.seg-l{font-size:13px;color:var(--label2);margin:0 0 7px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);background:var(--fill);border-radius:9px;padding:2px;gap:2px;position:relative}
+.seg button{border:0;background:transparent;border-radius:7px;height:34px;font-size:15px;font-weight:500;cursor:pointer;font-variant-numeric:tabular-nums;position:relative;transition:background-color .15s}
+.seg button.sel{background:var(--seg-sel);font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04)}
+.seg button .u{font-size:12px;color:var(--label2);margin-left:2px;font-weight:500}
+.seg button .dot{position:absolute;top:5px;right:7px;width:5px;height:5px;border-radius:50%;background:var(--label3)}
+
+/* form rows */
+.rows{border-top:.5px solid var(--sep);margin-left:16px}
+.frow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;padding-right:16px}
+.frow+.frow{border-top:.5px solid var(--sep)}
+.frow label{font-size:17px;flex:none}
+.frow input{border:0;background:transparent;color:var(--label);font:inherit;font-size:17px;text-align:right;min-width:0;flex:1;padding:10px 0;-webkit-appearance:none;appearance:none}
+.frow input::placeholder{color:var(--label3)}
+.frow input[type=datetime-local]{color:var(--blue);display:flex;justify-content:flex-end}
+.frow input[type=datetime-local]::-webkit-date-and-time-value{text-align:right}
+
+.primary{display:block;width:100%;margin-top:16px;height:50px;border:0;border-radius:12px;background:var(--blue);color:#fff;font-size:17px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .12s}
+.primary:active{opacity:.8;transform:scale(.99)}
+
+/* history list */
 .log{list-style:none;margin:0;padding:0}
-.log .mon{display:flex;justify-content:space-between;font-size:.78rem;font-weight:700;color:var(--muted);letter-spacing:.06em;padding:14px 2px 6px;border-bottom:1px solid var(--line)}
+.log .mon{font-size:13px;color:var(--label2);padding:18px 16px 7px;display:flex;justify-content:space-between;background:var(--bg)}
 .log .mon:first-child{padding-top:0}
-.log .ent{border-bottom:1px solid var(--line)}
-.log .ent.open{background:var(--sunk);border-radius:10px;border-bottom-color:transparent}
-.ent-main{width:100%;display:grid;grid-template-columns:60px 1fr auto;gap:12px;align-items:center;padding:11px 6px;background:none;border:0;font:inherit;color:inherit;text-align:left;cursor:pointer;border-radius:10px}
-.log .when{font-family:var(--font-num);line-height:1.25;font-variant-numeric:tabular-nums}
-.log .when b{display:block;font-size:1.05rem}
-.log .when span{font-size:.72rem;color:var(--muted)}
-.log .what{min-width:0;display:flex;flex-direction:column;gap:2px}
-.log .top{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
-.log .s{font-weight:700}
-.log .dose{font-family:var(--font-num);font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
-.log .sub2{font-size:.78rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:0 8px;overflow-wrap:anywhere}
-.log .gap.off{color:var(--warn);font-weight:700}
-.log .nt::before{content:"・"}
-.log .no{font-size:.72rem;color:var(--muted);white-space:nowrap}
-.log .chg{font-size:.7rem;font-weight:700;border-radius:99px;padding:0 7px}
-.log .chg.up{color:var(--accent);background:var(--accent-soft)}
-.log .chg.dn{color:var(--muted);background:var(--sunk)}
-.log .ex{font-size:.7rem;color:var(--gold);border:1px solid var(--gold);border-radius:99px;padding:0 6px}
-.mini{display:inline-grid;grid-template-columns:repeat(2,5px);gap:2px;flex:none}
-.mini i{width:5px;height:5px;border-radius:1.5px;background:var(--line)}
-.mini i.on{background:var(--accent)}
-.acts{display:flex;justify-content:flex-end;padding:0 8px 10px}
-.del{font:inherit;font-size:.82rem;background:var(--surface);border:1px solid var(--line);color:var(--bad);border-radius:8px;padding:6px 12px;cursor:pointer;white-space:nowrap}
-.del.arm{background:var(--bad);color:#fff;border-color:var(--bad)}
-#more{align-self:center}
-.empty{color:var(--muted);font-size:.9rem;text-align:center;padding:16px 0;display:block!important}
+.log .grp{background:var(--card);border-radius:12px;overflow:hidden;list-style:none;margin:0;padding:0}
+.ent+.ent .ent-main{box-shadow:inset 0 .5px 0 var(--sep);}
+.ent-main{width:100%;display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--card);border:0;text-align:left;cursor:pointer}
+.ent-main:active{background:var(--fill2)}
+.ico{width:36px;height:36px;border-radius:9px;background:color-mix(in srgb,var(--blue) 14%,transparent);display:grid;grid-template-columns:repeat(2,7px);gap:3px;place-content:center;flex:none}
+.ico i{width:7px;height:7px;border-radius:2px;background:color-mix(in srgb,var(--blue) 25%,transparent)}
+.ico i.on{background:var(--blue)}
+.ent .what{flex:1;min-width:0}
+.ent .t1{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:17px}
+.ent .t1 .dose{color:var(--label2);font-variant-numeric:tabular-nums}
+.ent .t2{font-size:13px;color:var(--label2);margin-top:1px;overflow-wrap:anywhere}
+.ent .t2 .off{color:var(--orange);font-weight:600}
+.ent .chg{font-size:11px;font-weight:600;padding:1px 6px;border-radius:99px}
+.ent .chg.up{color:var(--blue);background:color-mix(in srgb,var(--blue) 14%,transparent)}
+.ent .chg.dn{color:var(--label2);background:var(--fill)}
+.ent .ex{font-size:11px;font-weight:600;color:var(--orange);background:color-mix(in srgb,var(--orange) 15%,transparent);padding:1px 6px;border-radius:99px}
+.ent .no{font-size:15px;color:var(--label2);white-space:nowrap;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.ent .chev{width:8px;height:13px;transition:transform .2s}
+.ent.open .chev{transform:rotate(90deg)}
+.del{display:block;width:100%;border:0;background:var(--card);color:var(--red);font-size:17px;padding:12px 16px;text-align:center;cursor:pointer;box-shadow:inset 0 .5px 0 var(--sep)}
+.del.arm{background:var(--red);color:#fff;font-weight:600}
+.empty{padding:22px 16px;text-align:center;color:var(--label2);font-size:15px;background:var(--card);border-radius:12px}
 
-.backup{display:flex;gap:8px;flex-wrap:wrap}
-.backup .btn{flex:1;min-width:120px}
-#importBox textarea{min-height:90px;font-family:ui-monospace,Menlo,monospace;font-size:13px}
-.install{font-size:.85rem;color:var(--muted)}
-.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:.9rem;opacity:0;transition:.25s;pointer-events:none;z-index:20;max-width:calc(100% - 32px);text-align:center}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.foot{font-size:.78rem;color:var(--muted);text-align:center;margin:0}
+/* action list */
+.list button.li{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;background:var(--card);padding:0 16px;min-height:46px;font-size:17px;color:var(--blue);cursor:pointer;text-align:left}
+.list button.li:active{background:var(--fill2)}
+.list button.li+button.li{border-top:.5px solid var(--sep)}
+.list .chev{width:8px;height:13px;opacity:.35}
+#importBox{padding:12px 16px 16px;border-top:.5px solid var(--sep);display:flex;flex-direction:column;gap:10px}
+#importBox input[type=file]{font-size:15px;color:var(--label2)}
+#importBox textarea{width:100%;min-height:90px;border:0;border-radius:10px;background:var(--fill2);color:var(--label);padding:10px;font:13px/1.4 ui-monospace,Menlo,monospace}
+#importGo{height:44px;border:0;border-radius:10px;background:var(--blue);color:#fff;font-size:17px;font-weight:600;cursor:pointer}
 
-@media (max-width:420px){
-  .status{grid-template-columns:1fr 1fr}
-  .status .stat:first-child{grid-column:1/-1}
-  .machine{gap:8px;padding:12px}
-  .cell{font-size:1rem}
-}
-@media (prefers-reduced-motion:reduce){.lever .shaft,.toast{transition:none}}
+.banner{font-size:15px;padding:12px 16px;background:var(--card);border-radius:12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.banner button{border:0;background:none;color:var(--blue);font-size:15px;padding:0;cursor:pointer}
+.foot{font-size:13px;color:var(--label2);text-align:center;margin:28px 16px 0}
+
+.toast{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px) scale(.96);background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);color:var(--label);padding:12px 18px;border-radius:14px;font-size:15px;font-weight:600;opacity:0;transition:.25s;pointer-events:none;z-index:20;box-shadow:0 8px 30px rgba(0,0,0,.15);display:flex;align-items:center;gap:8px;max-width:calc(100% - 32px)}
+.toast svg{width:18px;height:18px;flex:none;color:var(--green)}
+.toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
+<div class="nav" id="nav" aria-hidden="true"><div>每週一針</div></div>
 <div class="wrap">
-  <header>
-    <h1>每週一針</h1>
-    <p class="sub">記下每次施打的時間、部位與劑量，並提醒你輪替部位。</p>
-  </header>
+  <p class="date" id="today"></p>
+  <h1 id="bigTitle">每週一針</h1>
 
-  <section class="status" aria-label="目前狀態">
-    <div class="stat"><div class="k">下次施打</div><div class="v" id="nextDate">—</div><span class="pill ok" id="nextPill" hidden></span></div>
-    <div class="stat"><div class="k">目前劑量</div><div class="v" id="curDose">—</div></div>
-    <div class="stat"><div class="k">累計針數</div><div class="v" id="count">0<small>針</small></div></div>
-  </section>
-
-  <section class="panel" aria-labelledby="pickH">
-    <div class="row spread"><h2 id="pickH">這一針</h2><span class="hint" id="pickSum"></span></div>
-    <div class="pick-head"><span>選擇部位</span><span class="legend"><span><i style="background:var(--accent)"></i>建議</span><span><i style="background:var(--bad)"></i>上次</span></span></div>
-    <div class="map" id="map" role="group" aria-label="施打部位"></div>
-    <p class="hint" id="recHint"></p>
-    <div class="pick-head"><span>選擇劑量</span></div>
-    <div class="doses" id="doses" role="group" aria-label="劑量"></div>
-    <div class="row">
-      <label class="f" for="when">施打時間<input type="datetime-local" id="when"></label>
-      <label class="f" for="note">備註（選填）<input type="text" id="note" maxlength="80" placeholder="例如：有點瘀青、飯後"></label>
-    </div>
-    <button type="button" class="btn primary" id="save">記錄這一針</button>
-  </section>
-
-  <section class="panel" aria-labelledby="logH">
-    <div class="row spread"><h2 id="logH">施打紀錄</h2></div>
-    <div class="banner" id="exBanner" hidden><span>目前顯示的是範例資料，記錄第一針後會自動清除。</span><button type="button" id="clearEx">清除範例</button></div>
-    <div class="banner" id="storeWarn" hidden><span>這個瀏覽器無法儲存資料（可能是無痕模式），關閉後紀錄會消失。</span></div>
-    <ul class="log" id="log"></ul>
-    <button type="button" class="btn ghost" id="more" hidden></button>
-    <p class="hint">點一筆紀錄可以刪除。間隔少於 6 天或超過 8 天會以橘色標示。</p>
-  </section>
-
-  <section class="panel" aria-labelledby="bkH">
-    <h2 id="bkH">備份與搬家</h2>
-    <p class="hint">紀錄只存在這支手機。換手機前先匯出，到新手機再匯入。</p>
-    <div class="backup">
-      <button type="button" class="btn ghost" id="exportBtn">匯出備份</button>
-      <button type="button" class="btn ghost" id="importBtn">匯入備份</button>
-      <button type="button" class="btn ghost" id="copyText">複製文字紀錄</button>
-    </div>
-    <div id="importBox" hidden>
-      <div class="row" style="flex-direction:column;align-items:stretch;gap:8px">
-        <input type="file" id="importFile" accept=".json,application/json,text/plain">
-        <label class="f" for="importText">或貼上備份內容<textarea id="importText" placeholder='{"app":"weekly-shot",...}'></textarea></label>
-        <button type="button" class="btn primary" id="importGo">匯入</button>
+  <div class="card" aria-label="目前狀態">
+    <div class="sum">
+      <div class="txt">
+        <div class="k"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 0h1.5v2h5V0H12v2h1.5A2.5 2.5 0 0 1 16 4.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 13.5v-9A2.5 2.5 0 0 1 2.5 2H4V0Zm-2.5 6v7.5c0 .55.45 1 1 1h11c.55 0 1-.45 1-1V6h-13Z"/></svg>下次施打</div>
+        <div class="big" id="nextDate">—</div>
+        <div class="st" id="nextSub"></div>
       </div>
+      <div class="ring" id="ring"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="tr" cx="32" cy="32" r="27" fill="none" stroke-width="7"/><circle class="pr" id="ringP" cx="32" cy="32" r="27" fill="none" stroke-width="7" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="169.6"/></svg><span id="ringT">—<small>天</small></span></div>
     </div>
-  </section>
+    <div class="stats">
+      <div><div class="k">目前劑量</div><div class="v" id="curDose">—</div></div>
+      <div><div class="k">累計</div><div class="v" id="count">0<small>針</small></div></div>
+    </div>
+  </div>
 
-  <p class="install" id="installHint" hidden>想像 App 一樣使用？在 Safari 點下方「分享」按鈕，選「加入主畫面」。</p>
-  <p class="foot">紀錄只存在這支裝置。劑量與施打方式請依醫師指示。</p>
+  <div class="sec-h"><span>這一針</span><span id="pickSum"></span></div>
+  <div class="card">
+    <div class="pad"><div class="map" id="map" role="group" aria-label="施打部位"></div></div>
+    <div class="seg-wrap">
+      <p class="seg-l">劑量</p>
+      <div class="seg" id="doses" role="group" aria-label="劑量"></div>
+    </div>
+    <div class="rows">
+      <div class="frow"><label for="when">時間</label><input type="datetime-local" id="when"></div>
+      <div class="frow"><label for="note">備註</label><input type="text" id="note" maxlength="80" placeholder="選填"></div>
+    </div>
+  </div>
+  <p class="sec-f" id="recHint"></p>
+  <button type="button" class="primary" id="save">記錄這一針</button>
+
+  <div class="sec-h"><span>施打紀錄</span><button type="button" class="act" id="more" hidden></button></div>
+  <div class="banner" id="exBanner" hidden><span>目前顯示範例資料</span><button type="button" id="clearEx">清除範例</button></div>
+  <div class="banner" id="storeWarn" hidden><span>這個瀏覽器無法儲存資料（可能是無痕模式），關閉後紀錄會消失。</span></div>
+  <ul class="log" id="log"></ul>
+  <p class="sec-f">點一筆紀錄可以刪除。間隔少於 6 天或超過 8 天會以橘色標示。</p>
+
+  <div class="sec-h"><span>備份與搬家</span></div>
+  <div class="card list">
+    <button type="button" class="li" id="exportBtn">匯出備份<svg class="chev" viewBox="0 0 8 13" aria-hidden="true"><path d="M1.5 1.5 6.5 6.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button type="button" class="li" id="importBtn">匯入備份<svg class="chev" viewBox="0 0 8 13" aria-hidden="true"><path d="M1.5 1.5 6.5 6.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button type="button" class="li" id="copyText">複製文字紀錄<svg class="chev" viewBox="0 0 8 13" aria-hidden="true"><path d="M1.5 1.5 6.5 6.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div id="importBox" hidden>
+      <input type="file" id="importFile" accept=".json,application/json,text/plain" aria-label="選擇備份檔">
+      <textarea id="importText" placeholder="或貼上備份內容" aria-label="備份內容"></textarea>
+      <button type="button" id="importGo">匯入</button>
+    </div>
+  </div>
+  <p class="sec-f">紀錄只存在這支手機。換手機前先匯出，到新手機再匯入。</p>
+
+  <p class="foot" id="installHint" hidden>在 Safari 點「分享」→「加入主畫面」，就能像 App 一樣使用。</p>
+  <p class="foot">劑量與施打方式請依醫師指示。</p>
 </div>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="currentColor"/><path d="m5.5 10.3 3 3 6-6.3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="toastT"></span></div>
 
 <script>
 (function(){
@@ -225,10 +232,11 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
   const DOSES=[2.5,5,7.5,10];
   const KEY='weekly-shot-log-v1';
   const DAY=86400000;
-  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $=id=>document.getElementById(id);
   const LEGACY={'abd-l':'左腹部','abd-r':'右腹部','arm-l':'左上臂','arm-r':'右上臂','thi-l':'左大腿','thi-r':'右大腿'};
   const siteName=id=>(SITES.find(s=>s.id===id)||{}).name||LEGACY[id]||id;
+  const CHEV='<svg class="chev" viewBox="0 0 8 13" aria-hidden="true"><path d="M1.5 1.5 6.5 6.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".35"/></svg>';
+  const CHECK='<svg class="ck" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#fff"/><path d="m5.5 10.3 3 3 6-6.3" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   // ---------- storage ----------
   let canStore=true, entries=null;
@@ -238,26 +246,21 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
   function sampleData(){
     const base=new Date(Date.now()-3*DAY); base.setHours(20,30,0,0);
     const mk=(w,site,dose,note)=>({id:'ex'+w,t:base.getTime()-w*7*DAY,site,dose,note,ex:true});
-    return [mk(0,'abl-r',5,'範例'),mk(1,'abl-l',5,''),mk(2,'abu-r',2.5,''),mk(3,'abu-l',2.5,''),mk(4,'abl-r',2.5,'第一針')];
+    return [mk(0,'abl-r',5,''),mk(1,'abl-l',5,''),mk(2,'abu-r',2.5,''),mk(3,'abu-l',2.5,''),mk(4,'abl-r',2.5,'')];
   }
   function persist(){ if(!canStore) return; try{localStorage.setItem(KEY,JSON.stringify(entries))}catch(e){canStore=false;$('storeWarn').hidden=false} }
   $('storeWarn').hidden=canStore;
   if(navigator.storage&&navigator.storage.persist){ try{navigator.storage.persist()}catch(e){} }
   const sorted=()=>entries.slice().sort((a,b)=>b.t-a.t);
 
-  // ---------- selection ----------
-  function Picker(items){ let i=0; return { get value(){return items[i]}, set(n){ i=n; renderPick() } }; }
-  let reels=null;
-  function renderPick(){
-    if(!reels) return;
-    renderMap();
-    const cur=reels.dose.value, last=sorted()[0];
-    $('doses').innerHTML=DOSES.map(d=>{const on=d===cur, prev=last&&last.dose===d;
-      return '<button type="button" class="dose-btn'+(on?' sel':'')+'" data-dose="'+d+'" aria-pressed="'+on+'"><span class="dv">'+d+'</span><span class="du">mg</span>'+(prev?'<span class="dp">上次</span>':'')+'</button>'}).join('');
-    $('pickSum').innerHTML='已選：<b>'+reels.site.value.name+'</b> · <b>'+cur+' mg</b>';
-  }
-
-  // ---------- logic ----------
+  // ---------- helpers ----------
+  const WD='日一二三四五六';
+  const md=t=>{const d=new Date(t);return (d.getMonth()+1)+'/'+d.getDate()};
+  const hm=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+  function startOfDay(t){const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
+  const daysAgo=t=>Math.round((startOfDay(Date.now())-startOfDay(t))/DAY);
+  function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function tap(){ if(navigator.vibrate){ try{navigator.vibrate(8)}catch(_){} } }
   function lastUse(){ const m={}; sorted().forEach(e=>{ if(!(e.site in m)) m[e.site]=e.t }); return m; }
   function recommend(){
     const m=lastUse(), last=sorted()[0];
@@ -265,51 +268,54 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
     SITES.forEach(s=>{ if(last&&s.id===last.site)return; const t=m[s.id]??-Infinity; if(t<bestT){bestT=t;best=s} });
     return best||SITES[0];
   }
-  const WD='日一二三四五六';
-  const md=t=>{const d=new Date(t);return (d.getMonth()+1)+'/'+d.getDate()};
-  const hm=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
-  function startOfDay(t){const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
-  const daysAgo=t=>Math.round((startOfDay(Date.now())-startOfDay(t))/DAY);
-  function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
+  // ---------- selection ----------
+  const pick={site:0,dose:0};
+  const selSite=()=>SITES[pick.site], selDose=()=>DOSES[pick.dose];
+
+  // ---------- render ----------
   function renderStatus(){
-    const list=sorted(), last=list[0], pill=$('nextPill');
-    const real=list.filter(e=>!e.ex).length;
-    $('count').innerHTML=real+'<small>針</small>';
-    if(!last){ $('nextDate').textContent='—'; $('curDose').textContent='—'; pill.hidden=true; return }
+    const list=sorted(), last=list[0];
+    $('count').innerHTML=list.filter(e=>!e.ex).length+'<small>針</small>';
+    const ring=$('ring'), sub=$('nextSub'), C=169.6;
+    if(!last){ $('nextDate').textContent='—'; $('curDose').textContent='—'; sub.textContent='記錄第一針後開始計算'; sub.className='st'; $('ringT').innerHTML='—'; $('ringP').style.strokeDashoffset=C; return }
     $('curDose').innerHTML=last.dose+'<small>mg</small>';
     const next=last.t+7*DAY, nd=new Date(next);
     $('nextDate').innerHTML=md(next)+'<small>週'+WD[nd.getDay()]+'</small>';
     const diff=Math.round((startOfDay(next)-startOfDay(Date.now()))/DAY);
-    pill.hidden=false;
-    if(diff>1){pill.className='pill ok';pill.textContent='還有 '+diff+' 天'}
-    else if(diff===1){pill.className='pill warn';pill.textContent='明天'}
-    else if(diff===0){pill.className='pill warn';pill.textContent='今天該打了'}
-    else {pill.className='pill bad';pill.textContent='已超過 '+(-diff)+' 天'}
+    const elapsed=Math.min(7,Math.max(0,7-diff));
+    $('ringP').style.strokeDashoffset=C*(1-elapsed/7);
+    ring.className='ring'; sub.className='st';
+    if(diff>1){ sub.textContent='還有 '+diff+' 天'; $('ringT').innerHTML=diff+'<small>天後</small>' }
+    else if(diff===1){ sub.textContent='明天'; sub.className='st warn'; ring.className='ring warn'; $('ringT').innerHTML='1<small>天後</small>' }
+    else if(diff===0){ sub.textContent='今天該打了'; sub.className='st warn'; ring.className='ring warn'; $('ringT').innerHTML='今天' }
+    else { sub.textContent='已超過 '+(-diff)+' 天'; sub.className='st bad'; ring.className='ring bad'; $('ringT').innerHTML='+'+(-diff)+'<small>天</small>' }
   }
-  function renderMap(){
-    if(!reels) return;
-    const m=lastUse(), last=sorted()[0], rec=recommend(), sel=reels.site.value;
+  function renderPick(){
+    const m=lastUse(), last=sorted()[0], rec=recommend(), sel=selSite();
     let h='';
-    ROWS.forEach(row=>{
-      ['左','右'].forEach(side=>{
-        const s=SITES.find(x=>x.row===row&&x.side===side);
-        const isLast=last&&s.id===last.site, isRec=s.id===rec.id;
-        const cls=['site']; if(isLast)cls.push('last'); else if(isRec)cls.push('rec'); if(sel.id===s.id)cls.push('sel');
-        const t=m[s.id]; const d=t==null?null:daysAgo(t);
-        const meta=t==null?'還沒打過':(d===0?'今天打過':d+' 天前打過');
-        const badge=isLast?'上次':(isRec?'建議':'');
-        h+='<button type="button" class="'+cls.join(' ')+'" data-site="'+s.id+'" aria-pressed="'+(sel.id===s.id)+'" aria-label="'+s.name+'，'+meta+(badge?'，'+badge:'')+'"><span class="nm">'+s.name+'</span><span class="m">'+meta+'</span>'+(badge?'<span class="badge">'+badge+'</span>':'')+'</button>';
-      });
-    });
+    ROWS.forEach(row=>['左','右'].forEach(side=>{
+      const s=SITES.find(x=>x.row===row&&x.side===side);
+      const isLast=last&&s.id===last.site, isRec=s.id===rec.id, on=sel.id===s.id;
+      const cls=['site']; if(isLast)cls.push('last'); else if(isRec)cls.push('rec'); if(on)cls.push('sel');
+      const t=m[s.id], d=t==null?null:daysAgo(t);
+      const meta=t==null?'還沒打過':(d===0?'今天打過':d+' 天前');
+      const badge=isLast?'上次':(isRec?'建議':'');
+      h+='<button type="button" class="'+cls.join(' ')+'" data-site="'+s.id+'" aria-pressed="'+on+'" aria-label="'+s.name+'，'+meta+(badge?'，'+badge:'')+'"><span class="nm">'+s.name+'</span><span class="m">'+meta+'</span>'+(badge?'<span class="badge">'+badge+'</span>':'')+CHECK+'</button>';
+    }));
     $('map').innerHTML=h;
-    $('recHint').innerHTML=last?('上次打在 <b class="last">'+siteName(last.site)+'</b>，建議這次換到 <b>'+rec.name+'</b>。'):'第一針可以從 <b>'+rec.name+'</b> 開始。';
+    const cur=selDose();
+    $('doses').innerHTML=DOSES.map(d=>{const on=d===cur, prev=last&&last.dose===d;
+      return '<button type="button" class="'+(on?'sel':'')+'" data-dose="'+d+'" aria-pressed="'+on+'" aria-label="'+d+' mg'+(prev?'，上次使用':'')+'">'+d+'<span class="u">mg</span>'+(prev&&!on?'<span class="dot"></span>':'')+'</button>'}).join('');
+    $('pickSum').textContent=sel.name+' · '+cur+' mg';
+    $('recHint').innerHTML=last?('上次打在<b>'+esc(siteName(last.site))+'</b>，建議這次換到<b>'+rec.name+'</b>。劑量上的小點是上次用的劑量。'):'第一針可以從<b>'+rec.name+'</b>開始。';
   }
+
   let showAll=false, openId=null;
   const SHOW_N=8;
-  function miniMap(siteId){
+  function ico(siteId){
     const i=SITES.findIndex(s=>s.id===siteId);
-    let h='<span class="mini" aria-hidden="true">'; for(let k=0;k<SITES.length;k++) h+='<i'+(k===i?' class="on"':'')+'></i>'; return h+'</span>';
+    let h='<span class="ico" aria-hidden="true">'; for(let k=0;k<SITES.length;k++) h+='<i'+(k===i?' class="on"':'')+'></i>'; return h+'</span>';
   }
   function renderLog(){
     const list=sorted();
@@ -317,42 +323,35 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
     if(!list.length){ $('log').innerHTML='<li class="empty">還沒有紀錄。選好部位和劑量，按「記錄這一針」。</li>'; $('more').hidden=true; return }
     const num={}; list.slice().reverse().forEach((e,i)=>num[e.id]=i+1);
     const shown=showAll?list:list.slice(0,SHOW_N);
-    let h='',month='';
-    shown.forEach(e=>{
-      const d=new Date(e.t), mk=d.getFullYear()+'-'+d.getMonth();
-      if(mk!==month){
-        month=mk;
-        const cnt=list.filter(x=>{const y=new Date(x.t);return y.getFullYear()===d.getFullYear()&&y.getMonth()===d.getMonth()}).length;
-        h+='<li class="mon"><span>'+d.getFullYear()+' 年 '+(d.getMonth()+1)+' 月</span><span>'+cnt+' 針</span></li>';
-      }
-      const prev=list[list.indexOf(e)+1];
-      let gap='第一針', off=false;
-      if(prev){ const g=Math.round((startOfDay(e.t)-startOfDay(prev.t))/DAY); gap='距上一針 '+g+' 天'; off=g>=9||g<=5; }
-      let chg=''; if(prev&&e.dose!==prev.dose) chg=e.dose>prev.dose?'<span class="chg up">↑ 加量</span>':'<span class="chg dn">↓ 減量</span>';
-      const open=openId===e.id;
-      h+='<li class="ent'+(open?' open':'')+'">'
-        +'<button type="button" class="ent-main" data-open="'+esc(e.id)+'" aria-expanded="'+open+'">'
-        +'<span class="when"><b>'+md(e.t)+'</b><span>週'+WD[d.getDay()]+' '+hm(e.t)+'</span></span>'
-        +'<span class="what"><span class="top">'+miniMap(e.site)+'<span class="s">'+esc(siteName(e.site))+'</span><span class="dose">'+e.dose+' mg</span>'+chg+(e.ex?'<span class="ex">範例</span>':'')+'</span>'
-        +'<span class="sub2"><span class="'+(off?'gap off':'gap')+'">'+gap+'</span>'+(e.note?'<span class="nt">'+esc(e.note)+'</span>':'')+'</span></span>'
-        +'<span class="no">第 '+num[e.id]+' 針</span></button>'
-        +(open?'<div class="acts"><button type="button" class="del" data-del="'+esc(e.id)+'">刪除這筆</button></div>':'')
-        +'</li>';
+    const groups=[];
+    shown.forEach(e=>{ const d=new Date(e.t), k=d.getFullYear()+'-'+d.getMonth(); let g=groups[groups.length-1]; if(!g||g.k!==k){ g={k,d,items:[]}; groups.push(g) } g.items.push(e) });
+    let h='';
+    groups.forEach(g=>{
+      const cnt=list.filter(x=>{const y=new Date(x.t);return y.getFullYear()===g.d.getFullYear()&&y.getMonth()===g.d.getMonth()}).length;
+      h+='<li class="mon"><span>'+g.d.getFullYear()+' 年 '+(g.d.getMonth()+1)+' 月</span><span>'+cnt+' 針</span></li><li><ul class="grp">';
+      g.items.forEach(e=>{
+        const d=new Date(e.t), prev=list[list.indexOf(e)+1];
+        let gap='第一針', off=false;
+        if(prev){ const n=Math.round((startOfDay(e.t)-startOfDay(prev.t))/DAY); gap='間隔 '+n+' 天'; off=n>=9||n<=5; }
+        const chg=prev&&e.dose!==prev.dose?(e.dose>prev.dose?'<span class="chg up">加量</span>':'<span class="chg dn">減量</span>'):'';
+        const open=openId===e.id;
+        h+='<li class="ent'+(open?' open':'')+'"><button type="button" class="ent-main" data-open="'+esc(e.id)+'" aria-expanded="'+open+'">'+ico(e.site)
+          +'<span class="what"><span class="t1"><span>'+esc(siteName(e.site))+'</span><span class="dose">'+e.dose+' mg</span>'+chg+(e.ex?'<span class="ex">範例</span>':'')+'</span>'
+          +'<span class="t2">'+md(e.t)+' 週'+WD[d.getDay()]+' '+hm(e.t)+' · <span class="'+(off?'off':'')+'">'+gap+'</span>'+(e.note?' · '+esc(e.note):'')+'</span></span>'
+          +'<span class="no">第 '+num[e.id]+' 針'+CHEV+'</span></button>'
+          +(open?'<button type="button" class="del" data-del="'+esc(e.id)+'">刪除這筆紀錄</button>':'')+'</li>';
+      });
+      h+='</ul></li>';
     });
     $('log').innerHTML=h;
     $('more').hidden=list.length<=SHOW_N;
-    $('more').textContent=showAll?'只顯示最近 '+SHOW_N+' 筆':'顯示全部 '+list.length+' 筆';
+    $('more').textContent=showAll?'收合':'全部 '+list.length+' 筆';
   }
   function renderAll(){ renderStatus(); renderPick(); renderLog(); }
 
-  // ---------- setup ----------
-  reels={ site:Picker(SITES), dose:Picker(DOSES) };
-  $('doses').addEventListener('click',e=>{ const b=e.target.closest('[data-dose]'); if(!b)return;
-    if(navigator.vibrate){ try{navigator.vibrate(10)}catch(_){} }
-    reels.dose.set(DOSES.indexOf(+b.dataset.dose)) });
-  $('map').addEventListener('click',e=>{ const b=e.target.closest('[data-site]'); if(!b)return;
-    if(navigator.vibrate){ try{navigator.vibrate(10)}catch(_){} }
-    reels.site.set(SITES.findIndex(s=>s.id===b.dataset.site)) });
+  // ---------- events ----------
+  $('map').addEventListener('click',e=>{ const b=e.target.closest('[data-site]'); if(!b)return; tap(); pick.site=SITES.findIndex(s=>s.id===b.dataset.site); renderPick() });
+  $('doses').addEventListener('click',e=>{ const b=e.target.closest('[data-dose]'); if(!b)return; tap(); pick.dose=DOSES.indexOf(+b.dataset.dose); renderPick() });
 
   function localInput(t){ const d=new Date(t); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16) }
   $('when').value=localInput(Date.now());
@@ -360,12 +359,12 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
   $('save').addEventListener('click',()=>{
     const v=$('when').value; const t=v?new Date(v).getTime():Date.now();
     if(isNaN(t)){toast('請填入施打時間');return}
+    const s=selSite(), d=selDose();
     entries=entries.filter(e=>!e.ex);
-    entries.push({id:'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),t,site:reels.site.value.id,dose:reels.dose.value,note:$('note').value.trim()});
+    entries.push({id:'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),t,site:s.id,dose:d,note:$('note').value.trim()});
     persist(); $('note').value=''; $('when').value=localInput(Date.now());
-    const savedName=reels.site.value.name, savedDose=reels.dose.value;
-    reels.site.set(SITES.indexOf(recommend()));
-    renderAll(); toast('已記錄：'+savedName+' '+savedDose+' mg');
+    pick.site=SITES.indexOf(recommend());
+    renderAll(); toast('已記錄 '+s.name+' '+d+' mg');
   });
 
   $('log').addEventListener('click',e=>{
@@ -385,7 +384,7 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
   function backupJSON(){ return JSON.stringify({app:'weekly-shot',version:1,exported:new Date().toISOString(),entries:realEntries()}) }
   async function copy(txt,okMsg){
     try{ await navigator.clipboard.writeText(txt); toast(okMsg) }
-    catch(e){ $('importBox').hidden=false; $('importText').value=txt; $('importText').select(); toast('請長按文字框，手動複製') }
+    catch(e){ $('importBox').hidden=false; $('importText').value=txt; $('importText').select(); toast('請長按文字框手動複製') }
   }
   $('exportBtn').addEventListener('click',async()=>{
     const list=realEntries(); if(!list.length){toast('還沒有可以匯出的紀錄');return}
@@ -399,7 +398,7 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
       const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
       const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(url),4000); toast('已匯出 '+list.length+' 筆');
-    }catch(e){ copy(json,'已複製備份內容，貼到備忘錄保存') }
+    }catch(e){ copy(json,'已複製備份內容') }
   });
   $('importBtn').addEventListener('click',()=>{ $('importBox').hidden=!$('importBox').hidden });
   $('importFile').addEventListener('change',e=>{
@@ -407,7 +406,7 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
     const r=new FileReader(); r.onload=()=>{ $('importText').value=String(r.result) }; r.readAsText(f);
   });
   $('importGo').addEventListener('click',()=>{
-    let data; try{ data=JSON.parse($('importText').value.trim()) }catch(e){ toast('看不懂這份備份，請確認是從本 App 匯出的檔案'); return }
+    let data; try{ data=JSON.parse($('importText').value.trim()) }catch(e){ toast('看不懂這份備份'); return }
     const list=Array.isArray(data)?data:(data&&data.entries);
     if(!Array.isArray(list)){ toast('備份裡找不到紀錄'); return }
     const ok=list.filter(x=>x&&typeof x.t==='number'&&x.site&&typeof x.dose==='number').map(x=>({id:String(x.id||('i'+x.t)),t:x.t,site:String(x.site),dose:x.dose,note:String(x.note||'').slice(0,80)}));
@@ -415,7 +414,7 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
     const add=ok.filter(x=>!have.has(x.id));
     entries=realEntries().concat(add); persist(); renderAll();
     $('importBox').hidden=true; $('importText').value=''; $('importFile').value='';
-    toast('匯入 '+add.length+' 筆'+(ok.length>add.length?'（'+(ok.length-add.length)+' 筆已存在）':''));
+    toast('匯入 '+add.length+' 筆'+(ok.length>add.length?'，'+(ok.length-add.length)+' 筆已存在':''));
   });
   $('copyText').addEventListener('click',()=>{
     const txt=sorted().filter(e=>!e.ex).map(e=>{const d=new Date(e.t);return d.getFullYear()+'/'+md(e.t)+' '+hm(e.t)+'  '+siteName(e.site)+'  '+e.dose+' mg'+(e.note?'  '+e.note:'')}).join('\n');
@@ -423,20 +422,22 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
     copy(txt,'已複製文字紀錄');
   });
 
-  let tt=0; function toast(m){ const el=$('toast'); el.textContent=m; el.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('show'),2000) }
+  let tt=0; function toast(m){ $('toastT').textContent=m; const el=$('toast'); el.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('show'),1800) }
 
-  // install hint: iOS Safari, not yet on home screen
+  // large title -> compact nav bar
+  try{ new IntersectionObserver(([en])=>$('nav').classList.toggle('show',!en.isIntersecting),{rootMargin:'-44px 0px 0px 0px'}).observe($('bigTitle')) }catch(e){}
+
+  function renderDate(){ const d=new Date(); $('today').textContent=(d.getMonth()+1)+'月'+d.getDate()+'日 星期'+WD[d.getDay()]; }
+
   const standalone=window.navigator.standalone||matchMedia('(display-mode: standalone)').matches;
   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   $('installHint').hidden=!(ios&&!standalone);
 
   const last0=sorted()[0];
-  reels.dose.set(last0?Math.max(0,DOSES.indexOf(last0.dose)):0);
-  reels.site.set(SITES.indexOf(recommend()));
-  renderAll();
-
-  // refresh "days" when app comes back to foreground
-  document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ renderAll() } });
+  pick.dose=last0?Math.max(0,DOSES.indexOf(last0.dose)):0;
+  pick.site=SITES.indexOf(recommend());
+  renderDate(); renderAll();
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ renderDate(); renderAll() } });
 
   if('serviceWorker' in navigator && location.protocol.startsWith('http')){
     navigator.serviceWorker.register('sw.js').catch(()=>{});
