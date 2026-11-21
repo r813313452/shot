@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>每週一針</title>
+<title>針猛</title>
 <meta name="description" content="記錄每週施打的時間、部位與劑量，並提醒你輪替部位。">
 <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="每週一針">
+<meta name="apple-mobile-web-app-title" content="針猛">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -163,10 +163,10 @@ h1{font-family:var(--font-d);font-size:34px;font-weight:700;letter-spacing:.01em
 </style>
 </head>
 <body>
-<div class="nav" id="nav" aria-hidden="true"><div>每週一針</div></div>
+<div class="nav" id="nav" aria-hidden="true"><div>針猛</div></div>
 <div class="wrap">
   <p class="date" id="today"></p>
-  <h1 id="bigTitle">每週一針</h1>
+  <h1 id="bigTitle">針猛</h1>
 
   <div class="card" aria-label="目前狀態">
     <div class="sum">
@@ -364,7 +364,7 @@ h1{font-family:var(--font-d);font-size:34px;font-weight:700;letter-spacing:.01em
     entries.push({id:'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),t,site:s.id,dose:d,note:$('note').value.trim()});
     persist(); $('note').value=''; $('when').value=localInput(Date.now());
     pick.site=SITES.indexOf(recommend());
-    renderAll(); toast('已記錄 '+s.name+' '+d+' mg');
+    renderAll(); toast('記好了，針猛！');
   });
 
   $('log').addEventListener('click',e=>{
@@ -388,11 +388,11 @@ h1{font-family:var(--font-d);font-size:34px;font-weight:700;letter-spacing:.01em
   }
   $('exportBtn').addEventListener('click',async()=>{
     const list=realEntries(); if(!list.length){toast('還沒有可以匯出的紀錄');return}
-    const d=new Date(), name='每週一針備份-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'.json';
+    const d=new Date(), name='針猛備份-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'.json';
     const json=backupJSON();
     try{
       const file=new File([json],name,{type:'application/json'});
-      if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:'每週一針備份'}); return }
+      if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:'針猛備份'}); return }
     }catch(e){ if(e&&e.name==='AbortError')return }
     try{
       const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));

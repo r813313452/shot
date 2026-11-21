@@ -1,5 +1,5 @@
 // 離線快取：頁面先抓網路（拿到最新版），沒網路時用快取；其他檔案先用快取。
-const CACHE = 'weekly-shot-v1';
+const CACHE = 'weekly-shot-v5';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
