@@ -218,18 +218,16 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
 <script>
 (function(){
   const SITES=[
-    {id:'arm-l',name:'左上臂',row:'上臂',side:'左'},{id:'arm-r',name:'右上臂',row:'上臂',side:'右'},
     {id:'abu-l',name:'左上腹',row:'上腹',side:'左'},{id:'abu-r',name:'右上腹',row:'上腹',side:'右'},
-    {id:'abl-l',name:'左下腹',row:'下腹',side:'左'},{id:'abl-r',name:'右下腹',row:'下腹',side:'右'},
-    {id:'thi-l',name:'左大腿',row:'大腿',side:'左'},{id:'thi-r',name:'右大腿',row:'大腿',side:'右'}
+    {id:'abl-l',name:'左下腹',row:'下腹',side:'左'},{id:'abl-r',name:'右下腹',row:'下腹',side:'右'}
   ];
-  const ROWS=['上臂','上腹','下腹','大腿'];
+  const ROWS=['上腹','下腹'];
   const DOSES=[2.5,5,7.5,10];
   const KEY='weekly-shot-log-v1';
   const DAY=86400000;
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $=id=>document.getElementById(id);
-  const LEGACY={'abd-l':'左腹部','abd-r':'右腹部'};
+  const LEGACY={'abd-l':'左腹部','abd-r':'右腹部','arm-l':'左上臂','arm-r':'右上臂','thi-l':'左大腿','thi-r':'右大腿'};
   const siteName=id=>(SITES.find(s=>s.id===id)||{}).name||LEGACY[id]||id;
 
   // ---------- storage ----------
@@ -240,7 +238,7 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
   function sampleData(){
     const base=new Date(Date.now()-3*DAY); base.setHours(20,30,0,0);
     const mk=(w,site,dose,note)=>({id:'ex'+w,t:base.getTime()-w*7*DAY,site,dose,note,ex:true});
-    return [mk(0,'abl-r',5,'範例'),mk(1,'abl-l',5,''),mk(2,'abu-r',2.5,''),mk(3,'thi-l',2.5,''),mk(4,'abu-l',2.5,'第一針')];
+    return [mk(0,'abl-r',5,'範例'),mk(1,'abl-l',5,''),mk(2,'abu-r',2.5,''),mk(3,'abu-l',2.5,''),mk(4,'abl-r',2.5,'第一針')];
   }
   function persist(){ if(!canStore) return; try{localStorage.setItem(KEY,JSON.stringify(entries))}catch(e){canStore=false;$('storeWarn').hidden=false} }
   $('storeWarn').hidden=canStore;
