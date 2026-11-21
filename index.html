@@ -52,7 +52,7 @@ h2{font-size:1rem;margin:0;font-weight:700;letter-spacing:.04em}
 .pill.warn{color:var(--warn);background:color-mix(in srgb,var(--warn) 16%,transparent)}
 .pill.bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,transparent)}
 
-.machine{background:var(--reel-bg);border-radius:18px;padding:14px;display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:stretch}
+.machine{background:var(--reel-bg);border-radius:18px;padding:14px;display:grid;grid-template-columns:1.2fr 1fr;gap:10px;align-items:stretch}
 .reel-col{display:flex;flex-direction:column;gap:6px;min-width:0}
 .reel-label{color:var(--reel-dim);font-size:.72rem;letter-spacing:.14em;text-align:center}
 .reel{position:relative;height:168px;overflow:hidden;border-radius:10px;background:linear-gradient(var(--reel-bg),var(--reel-mid) 50%,var(--reel-bg));outline:none;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
@@ -84,16 +84,19 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
 .btn.primary{background:var(--accent);color:var(--accent-ink);width:100%;font-size:1rem}
 .btn.ghost{background:transparent;color:var(--muted);border-color:var(--line);font-weight:500;padding:7px 12px;font-size:.85rem}
 
-.map{display:grid;grid-template-columns:auto 1fr 1fr;gap:8px}
-.map .rh{font-size:.8rem;color:var(--muted);display:flex;align-items:center;padding-right:4px}
-.map .ch{font-size:.75rem;color:var(--muted);text-align:center;letter-spacing:.1em}
-.site{background:var(--sunk);border:1px solid transparent;border-radius:10px;padding:8px 10px;cursor:pointer;text-align:left;font:inherit;color:var(--fg);min-width:0;display:flex;flex-direction:column}
-.site .d{font-family:var(--font-num);font-weight:700;font-size:1.05rem}
-.site .d small{font-size:.7rem;font-weight:500}
+.pick-head{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;font-weight:700;gap:10px;flex-wrap:wrap}
+.pick-head .legend{font-weight:400}
+.map{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.site{position:relative;background:var(--sunk);border:2px solid transparent;border-radius:12px;padding:10px 12px;min-height:58px;cursor:pointer;text-align:left;font:inherit;color:var(--fg);min-width:0;display:flex;flex-direction:column;justify-content:center;gap:1px;transition:transform .1s}
+.site:active{transform:scale(.97)}
+.site .nm{font-weight:700;font-size:1.05rem;line-height:1.3}
 .site .m{font-size:.75rem;color:var(--muted)}
-.site.last{border-color:var(--bad)}
-.site.rec{border-color:var(--accent);background:var(--accent-soft)}
-.site.sel{box-shadow:inset 0 0 0 2px var(--gold)}
+.site .badge{position:absolute;top:8px;right:10px;font-size:.7rem;font-weight:700;padding:0 7px;border-radius:99px}
+.site.last .badge{color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,transparent)}
+.site.rec .badge{color:var(--accent);background:var(--surface)}
+.site.rec{background:var(--accent-soft)}
+.site.sel{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 16%,var(--surface))}
+.site.sel .nm::after{content:" ✓";color:var(--gold)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.75rem;color:var(--muted)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 
@@ -135,7 +138,7 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
 <div class="wrap">
   <header>
     <h1>每週一針</h1>
-    <p class="sub">記下每次施打的時間、部位與劑量，拉一下拉霸選出這次的部位。</p>
+    <p class="sub">記下每次施打的時間、部位與劑量，並提醒你輪替部位。</p>
   </header>
 
   <section class="status" aria-label="目前狀態">
@@ -145,36 +148,25 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
   </section>
 
   <section class="panel" aria-labelledby="pickH">
-    <div class="row spread"><h2 id="pickH">這一針</h2><span class="hint">上下滑動轉輪，或拉右邊把手</span></div>
+    <div class="row spread"><h2 id="pickH">這一針</h2><span class="hint">點下方部位，或上下滑動轉輪</span></div>
     <div class="machine">
       <div class="reel-col">
         <div class="reel-label">部位</div>
         <div class="reel" id="reelSite" tabindex="0" role="listbox" aria-label="施打部位"><div class="win"></div><div class="track"></div></div>
-        <div class="nudge"><button type="button" data-reel="site" data-d="-1" aria-label="上一個部位">▲</button><button type="button" data-reel="site" data-d="1" aria-label="下一個部位">▼</button></div>
       </div>
       <div class="reel-col">
         <div class="reel-label">劑量</div>
         <div class="reel" id="reelDose" tabindex="0" role="listbox" aria-label="劑量"><div class="win"></div><div class="track"></div></div>
-        <div class="nudge"><button type="button" data-reel="dose" data-d="-1" aria-label="較低劑量">▲</button><button type="button" data-reel="dose" data-d="1" aria-label="較高劑量">▼</button></div>
       </div>
-      <button type="button" class="lever" id="lever" aria-label="拉霸：轉到建議部位與上次劑量">
-        <div class="shaft"><div class="ball"></div></div>
-        <div class="base"></div>
-        <div class="tag">拉一下</div>
-      </button>
     </div>
+    <div class="pick-head"><span>選擇部位</span><span class="legend"><span><i style="background:var(--accent)"></i>建議</span><span><i style="background:var(--bad)"></i>上次</span></span></div>
+    <div class="map" id="map"></div>
     <p class="hint" id="recHint"></p>
     <div class="row">
       <label class="f" for="when">施打時間<input type="datetime-local" id="when"></label>
       <label class="f" for="note">備註（選填）<input type="text" id="note" maxlength="80" placeholder="例如：有點瘀青、飯後"></label>
     </div>
     <button type="button" class="btn primary" id="save">記錄這一針</button>
-  </section>
-
-  <section class="panel" aria-labelledby="mapH">
-    <div class="row spread"><h2 id="mapH">部位輪替</h2><span class="hint">點格子可直接選部位</span></div>
-    <div class="map" id="map"></div>
-    <div class="legend"><span><i style="background:var(--accent)"></i>建議這次</span><span><i style="background:var(--bad)"></i>上次打過</span><span>數字＝距上次使用天數</span></div>
   </section>
 
   <section class="panel" aria-labelledby="logH">
@@ -308,15 +300,16 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
   function renderMap(){
     if(!reels) return;
     const m=lastUse(), last=sorted()[0], rec=recommend(), sel=reels.site.value;
-    let h='<div></div><div class="ch">左側</div><div class="ch">右側</div>';
+    let h='';
     ROWS.forEach(row=>{
-      h+='<div class="rh">'+row+'</div>';
       ['左','右'].forEach(side=>{
         const s=SITES.find(x=>x.row===row&&x.side===side);
-        const cls=['site']; if(last&&s.id===last.site)cls.push('last'); else if(s.id===rec.id)cls.push('rec'); if(sel.id===s.id)cls.push('sel');
+        const isLast=last&&s.id===last.site, isRec=s.id===rec.id;
+        const cls=['site']; if(isLast)cls.push('last'); else if(isRec)cls.push('rec'); if(sel.id===s.id)cls.push('sel');
         const t=m[s.id]; const d=t==null?null:daysAgo(t);
-        const meta=t==null?'尚未使用':(d===0?'今天':d+' 天前')+(s.id===rec.id?' · 建議':'');
-        h+='<button type="button" class="'+cls.join(' ')+'" data-site="'+s.id+'" aria-label="'+s.name+'，'+meta+'"><span class="d">'+(t==null?'新':d+'<small> 天</small>')+'</span><span class="m">'+meta+'</span></button>';
+        const meta=t==null?'還沒打過':(d===0?'今天打過':d+' 天前打過');
+        const badge=isLast?'上次':(isRec?'建議':'');
+        h+='<button type="button" class="'+cls.join(' ')+'" data-site="'+s.id+'" aria-pressed="'+(sel.id===s.id)+'" aria-label="'+s.name+'，'+meta+(badge?'，'+badge:'')+'"><span class="nm">'+s.name+'</span><span class="m">'+meta+'</span>'+(badge?'<span class="badge">'+badge+'</span>':'')+'</button>';
       });
     });
     $('map').innerHTML=h;
@@ -335,19 +328,12 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
     site:Reel($('reelSite'),SITES,s=>s.name,'施打部位'),
     dose:Reel($('reelDose'),DOSES,d=>d+'<span class="u">mg</span>','劑量')
   };
-  document.querySelectorAll('.nudge button').forEach(b=>b.addEventListener('click',()=>reels[b.dataset.reel].step(+b.dataset.d)));
-  $('map').addEventListener('click',e=>{ const b=e.target.closest('[data-site]'); if(!b)return; reels.site.spinTo(SITES.findIndex(s=>s.id===b.dataset.site),1,500) });
+  $('map').addEventListener('click',e=>{ const b=e.target.closest('[data-site]'); if(!b)return;
+    if(navigator.vibrate){ try{navigator.vibrate(10)}catch(_){} }
+    reels.site.spinTo(SITES.findIndex(s=>s.id===b.dataset.site),2,700) });
 
   function localInput(t){ const d=new Date(t); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16) }
   $('when').value=localInput(Date.now());
-
-  $('lever').addEventListener('click',()=>{
-    const lv=$('lever'); lv.classList.add('pulled'); setTimeout(()=>lv.classList.remove('pulled'),reduce?0:350);
-    if(navigator.vibrate){ try{navigator.vibrate(20)}catch(e){} }
-    const last=sorted()[0];
-    reels.site.spinTo(SITES.indexOf(recommend()),6,1600);
-    reels.dose.spinTo(last?Math.max(0,DOSES.indexOf(last.dose)):0,4,1100);
-  });
 
   $('save').addEventListener('click',()=>{
     const v=$('when').value; const t=v?new Date(v).getTime():Date.now();
