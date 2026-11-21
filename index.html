@@ -84,6 +84,14 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
 .btn.primary{background:var(--accent);color:var(--accent-ink);width:100%;font-size:1rem}
 .btn.ghost{background:transparent;color:var(--muted);border-color:var(--line);font-weight:500;padding:7px 12px;font-size:.85rem}
 
+.doses{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.dose-btn{position:relative;font:inherit;background:var(--sunk);color:var(--fg);border:2px solid transparent;border-radius:12px;min-height:52px;padding:8px 6px;cursor:pointer;display:flex;align-items:baseline;justify-content:center;gap:3px;transition:transform .1s}
+.dose-btn:active{transform:scale(.97)}
+.dose-btn .dv{font-family:var(--font-num);font-weight:700;font-size:1.1rem;font-variant-numeric:tabular-nums}
+.dose-btn .du{font-size:.75rem;color:var(--muted)}
+.dose-btn .dp{position:absolute;top:3px;right:6px;font-size:.62rem;color:var(--muted)}
+.dose-btn.sel{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 16%,var(--surface))}
+#pickSum b{color:var(--fg)}
 .pick-head{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;font-weight:700;gap:10px;flex-wrap:wrap}
 .pick-head .legend{font-weight:400}
 .map{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -103,18 +111,33 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
 .banner{background:color-mix(in srgb,var(--gold) 14%,transparent);border-radius:10px;padding:8px 12px;font-size:.85rem;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .banner button{font:inherit;font-size:.8rem;background:none;border:1px solid var(--gold);color:var(--fg);border-radius:8px;padding:3px 10px;cursor:pointer}
 .log{list-style:none;margin:0;padding:0}
-.log li{display:grid;grid-template-columns:76px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
-.log li:first-child{border-top:0}
+.log .mon{display:flex;justify-content:space-between;font-size:.78rem;font-weight:700;color:var(--muted);letter-spacing:.06em;padding:14px 2px 6px;border-bottom:1px solid var(--line)}
+.log .mon:first-child{padding-top:0}
+.log .ent{border-bottom:1px solid var(--line)}
+.log .ent.open{background:var(--sunk);border-radius:10px;border-bottom-color:transparent}
+.ent-main{width:100%;display:grid;grid-template-columns:60px 1fr auto;gap:12px;align-items:center;padding:11px 6px;background:none;border:0;font:inherit;color:inherit;text-align:left;cursor:pointer;border-radius:10px}
 .log .when{font-family:var(--font-num);line-height:1.25;font-variant-numeric:tabular-nums}
-.log .when b{display:block;font-size:1rem}
-.log .when span{font-size:.75rem;color:var(--muted)}
-.log .what{min-width:0}
-.log .what .s{font-weight:700}
-.log .what .n{font-size:.8rem;color:var(--muted);overflow-wrap:anywhere}
-.log .dose{font-family:var(--font-num);font-weight:700;color:var(--accent);margin-left:6px}
-.log .ex{font-size:.7rem;color:var(--gold);border:1px solid var(--gold);border-radius:99px;padding:0 6px;margin-left:6px}
-.del{font:inherit;font-size:.8rem;background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:5px 9px;cursor:pointer;white-space:nowrap}
-.del.arm{color:var(--bad);border-color:var(--bad)}
+.log .when b{display:block;font-size:1.05rem}
+.log .when span{font-size:.72rem;color:var(--muted)}
+.log .what{min-width:0;display:flex;flex-direction:column;gap:2px}
+.log .top{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.log .s{font-weight:700}
+.log .dose{font-family:var(--font-num);font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.log .sub2{font-size:.78rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:0 8px;overflow-wrap:anywhere}
+.log .gap.off{color:var(--warn);font-weight:700}
+.log .nt::before{content:"・"}
+.log .no{font-size:.72rem;color:var(--muted);white-space:nowrap}
+.log .chg{font-size:.7rem;font-weight:700;border-radius:99px;padding:0 7px}
+.log .chg.up{color:var(--accent);background:var(--accent-soft)}
+.log .chg.dn{color:var(--muted);background:var(--sunk)}
+.log .ex{font-size:.7rem;color:var(--gold);border:1px solid var(--gold);border-radius:99px;padding:0 6px}
+.mini{display:inline-grid;grid-template-columns:repeat(2,5px);gap:2px;flex:none}
+.mini i{width:5px;height:5px;border-radius:1.5px;background:var(--line)}
+.mini i.on{background:var(--accent)}
+.acts{display:flex;justify-content:flex-end;padding:0 8px 10px}
+.del{font:inherit;font-size:.82rem;background:var(--surface);border:1px solid var(--line);color:var(--bad);border-radius:8px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.del.arm{background:var(--bad);color:#fff;border-color:var(--bad)}
+#more{align-self:center}
 .empty{color:var(--muted);font-size:.9rem;text-align:center;padding:16px 0;display:block!important}
 
 .backup{display:flex;gap:8px;flex-wrap:wrap}
@@ -148,20 +171,12 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
   </section>
 
   <section class="panel" aria-labelledby="pickH">
-    <div class="row spread"><h2 id="pickH">這一針</h2><span class="hint">點下方部位，或上下滑動轉輪</span></div>
-    <div class="machine">
-      <div class="reel-col">
-        <div class="reel-label">部位</div>
-        <div class="reel" id="reelSite" tabindex="0" role="listbox" aria-label="施打部位"><div class="win"></div><div class="track"></div></div>
-      </div>
-      <div class="reel-col">
-        <div class="reel-label">劑量</div>
-        <div class="reel" id="reelDose" tabindex="0" role="listbox" aria-label="劑量"><div class="win"></div><div class="track"></div></div>
-      </div>
-    </div>
+    <div class="row spread"><h2 id="pickH">這一針</h2><span class="hint" id="pickSum"></span></div>
     <div class="pick-head"><span>選擇部位</span><span class="legend"><span><i style="background:var(--accent)"></i>建議</span><span><i style="background:var(--bad)"></i>上次</span></span></div>
-    <div class="map" id="map"></div>
+    <div class="map" id="map" role="group" aria-label="施打部位"></div>
     <p class="hint" id="recHint"></p>
+    <div class="pick-head"><span>選擇劑量</span></div>
+    <div class="doses" id="doses" role="group" aria-label="劑量"></div>
     <div class="row">
       <label class="f" for="when">施打時間<input type="datetime-local" id="when"></label>
       <label class="f" for="note">備註（選填）<input type="text" id="note" maxlength="80" placeholder="例如：有點瘀青、飯後"></label>
@@ -174,6 +189,8 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
     <div class="banner" id="exBanner" hidden><span>目前顯示的是範例資料，記錄第一針後會自動清除。</span><button type="button" id="clearEx">清除範例</button></div>
     <div class="banner" id="storeWarn" hidden><span>這個瀏覽器無法儲存資料（可能是無痕模式），關閉後紀錄會消失。</span></div>
     <ul class="log" id="log"></ul>
+    <button type="button" class="btn ghost" id="more" hidden></button>
+    <p class="hint">點一筆紀錄可以刪除。間隔少於 6 天或超過 8 天會以橘色標示。</p>
   </section>
 
   <section class="panel" aria-labelledby="bkH">
@@ -207,7 +224,7 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
     {id:'thi-l',name:'左大腿',row:'大腿',side:'左'},{id:'thi-r',name:'右大腿',row:'大腿',side:'右'}
   ];
   const ROWS=['上臂','上腹','下腹','大腿'];
-  const DOSES=[2.5,5,7.5,10,12.5,15];
+  const DOSES=[2.5,5,7.5,10];
   const KEY='weekly-shot-log-v1';
   const DAY=86400000;
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -230,42 +247,17 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
   if(navigator.storage&&navigator.storage.persist){ try{navigator.storage.persist()}catch(e){} }
   const sorted=()=>entries.slice().sort((a,b)=>b.t-a.t);
 
-  // ---------- reels ----------
-  function Reel(el,items,render,label){
-    const H=56,n=items.length,CYC=14,MID=3;
-    const track=el.querySelector('.track');
-    let html='';for(let c=0;c<CYC;c++)items.forEach(it=>html+='<div class="cell">'+render(it)+'</div>');
-    track.innerHTML=html;
-    let pos=MID*n, busy=false, timer=0;
-    const idx=()=>((pos%n)+n)%n;
-    function paint(ms,ease){
-      track.style.transition=ms?('transform '+ms+'ms '+(ease||'cubic-bezier(.2,.7,.2,1)')):'none';
-      track.style.transform='translateY('+(-(pos-1)*H)+'px)';
-    }
-    function settle(){ pos=MID*n+idx(); paint(0); busy=false; el.setAttribute('aria-label',label+'：'+render(items[idx()]).replace(/<[^>]+>/g,'')); renderMap(); }
-    function go(p,ms,ease){ clearTimeout(timer); pos=p; busy=true; paint(ms,ease); timer=setTimeout(settle,ms+30); }
-    const api={
-      get value(){return items[idx()]},
-      step(d){ if(busy)settle(); go(pos+d,reduce?0:200) },
-      set(i){ pos=MID*n+i; settle() },
-      spinTo(i,loops,ms){ if(busy)settle(); pos=MID*n+idx(); paint(0);
-        if(reduce){ pos=MID*n+i; settle(); return }
-        void track.offsetHeight; go(MID*n+loops*n+i,ms,'cubic-bezier(.15,.6,.15,1)'); }
-    };
-    let startY=null,startPos=0,moved=false;
-    el.addEventListener('pointerdown',e=>{ if(busy)settle(); startY=e.clientY;startPos=pos;moved=false; try{el.setPointerCapture(e.pointerId)}catch(_){} });
-    el.addEventListener('pointermove',e=>{ if(startY===null)return; const dy=e.clientY-startY; if(Math.abs(dy)>3)moved=true; track.style.transition='none'; track.style.transform='translateY('+(-(startPos-1)*H+dy)+'px)'; });
-    const end=e=>{ if(startY===null)return; const dy=e.clientY-startY;
-      if(!moved){ const r=el.getBoundingClientRect(), y=e.clientY-r.top; startY=null;
-        if(y<H) api.step(-1); else if(y>2*H) api.step(1); else paint(0); return; }
-      startY=null; go(startPos-Math.round(dy/H),reduce?0:160); };
-    el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
-    el.addEventListener('wheel',e=>{ e.preventDefault(); if(Math.abs(e.deltaY)<4)return; api.step(e.deltaY>0?1:-1) },{passive:false});
-    el.addEventListener('keydown',e=>{ if(e.key==='ArrowDown'){e.preventDefault();api.step(1)} else if(e.key==='ArrowUp'){e.preventDefault();api.step(-1)} });
-    paint(0);
-    return api;
-  }
+  // ---------- selection ----------
+  function Picker(items){ let i=0; return { get value(){return items[i]}, set(n){ i=n; renderPick() } }; }
   let reels=null;
+  function renderPick(){
+    if(!reels) return;
+    renderMap();
+    const cur=reels.dose.value, last=sorted()[0];
+    $('doses').innerHTML=DOSES.map(d=>{const on=d===cur, prev=last&&last.dose===d;
+      return '<button type="button" class="dose-btn'+(on?' sel':'')+'" data-dose="'+d+'" aria-pressed="'+on+'"><span class="dv">'+d+'</span><span class="du">mg</span>'+(prev?'<span class="dp">上次</span>':'')+'</button>'}).join('');
+    $('pickSum').innerHTML='已選：<b>'+reels.site.value.name+'</b> · <b>'+cur+' mg</b>';
+  }
 
   // ---------- logic ----------
   function lastUse(){ const m={}; sorted().forEach(e=>{ if(!(e.site in m)) m[e.site]=e.t }); return m; }
@@ -315,22 +307,54 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
     $('map').innerHTML=h;
     $('recHint').innerHTML=last?('上次打在 <b class="last">'+siteName(last.site)+'</b>，建議這次換到 <b>'+rec.name+'</b>。'):'第一針可以從 <b>'+rec.name+'</b> 開始。';
   }
+  let showAll=false, openId=null;
+  const SHOW_N=8;
+  function miniMap(siteId){
+    const i=SITES.findIndex(s=>s.id===siteId);
+    let h='<span class="mini" aria-hidden="true">'; for(let k=0;k<SITES.length;k++) h+='<i'+(k===i?' class="on"':'')+'></i>'; return h+'</span>';
+  }
   function renderLog(){
     const list=sorted();
     $('exBanner').hidden=!list.some(e=>e.ex);
-    if(!list.length){ $('log').innerHTML='<li class="empty">還沒有紀錄。拉一下拉霸，然後按「記錄這一針」。</li>'; return }
-    $('log').innerHTML=list.map(e=>{const d=new Date(e.t);return '<li><div class="when"><b>'+md(e.t)+'</b><span>週'+WD[d.getDay()]+' '+hm(e.t)+'</span></div><div class="what"><span class="s">'+esc(siteName(e.site))+'</span><span class="dose">'+e.dose+' mg</span>'+(e.ex?'<span class="ex">範例</span>':'')+(e.note?'<div class="n">'+esc(e.note)+'</div>':'')+'</div><button type="button" class="del" data-id="'+esc(e.id)+'">刪除</button></li>'}).join('');
+    if(!list.length){ $('log').innerHTML='<li class="empty">還沒有紀錄。選好部位和劑量，按「記錄這一針」。</li>'; $('more').hidden=true; return }
+    const num={}; list.slice().reverse().forEach((e,i)=>num[e.id]=i+1);
+    const shown=showAll?list:list.slice(0,SHOW_N);
+    let h='',month='';
+    shown.forEach(e=>{
+      const d=new Date(e.t), mk=d.getFullYear()+'-'+d.getMonth();
+      if(mk!==month){
+        month=mk;
+        const cnt=list.filter(x=>{const y=new Date(x.t);return y.getFullYear()===d.getFullYear()&&y.getMonth()===d.getMonth()}).length;
+        h+='<li class="mon"><span>'+d.getFullYear()+' 年 '+(d.getMonth()+1)+' 月</span><span>'+cnt+' 針</span></li>';
+      }
+      const prev=list[list.indexOf(e)+1];
+      let gap='第一針', off=false;
+      if(prev){ const g=Math.round((startOfDay(e.t)-startOfDay(prev.t))/DAY); gap='距上一針 '+g+' 天'; off=g>=9||g<=5; }
+      let chg=''; if(prev&&e.dose!==prev.dose) chg=e.dose>prev.dose?'<span class="chg up">↑ 加量</span>':'<span class="chg dn">↓ 減量</span>';
+      const open=openId===e.id;
+      h+='<li class="ent'+(open?' open':'')+'">'
+        +'<button type="button" class="ent-main" data-open="'+esc(e.id)+'" aria-expanded="'+open+'">'
+        +'<span class="when"><b>'+md(e.t)+'</b><span>週'+WD[d.getDay()]+' '+hm(e.t)+'</span></span>'
+        +'<span class="what"><span class="top">'+miniMap(e.site)+'<span class="s">'+esc(siteName(e.site))+'</span><span class="dose">'+e.dose+' mg</span>'+chg+(e.ex?'<span class="ex">範例</span>':'')+'</span>'
+        +'<span class="sub2"><span class="'+(off?'gap off':'gap')+'">'+gap+'</span>'+(e.note?'<span class="nt">'+esc(e.note)+'</span>':'')+'</span></span>'
+        +'<span class="no">第 '+num[e.id]+' 針</span></button>'
+        +(open?'<div class="acts"><button type="button" class="del" data-del="'+esc(e.id)+'">刪除這筆</button></div>':'')
+        +'</li>';
+    });
+    $('log').innerHTML=h;
+    $('more').hidden=list.length<=SHOW_N;
+    $('more').textContent=showAll?'只顯示最近 '+SHOW_N+' 筆':'顯示全部 '+list.length+' 筆';
   }
-  function renderAll(){ renderStatus(); renderMap(); renderLog(); }
+  function renderAll(){ renderStatus(); renderPick(); renderLog(); }
 
   // ---------- setup ----------
-  reels={
-    site:Reel($('reelSite'),SITES,s=>s.name,'施打部位'),
-    dose:Reel($('reelDose'),DOSES,d=>d+'<span class="u">mg</span>','劑量')
-  };
+  reels={ site:Picker(SITES), dose:Picker(DOSES) };
+  $('doses').addEventListener('click',e=>{ const b=e.target.closest('[data-dose]'); if(!b)return;
+    if(navigator.vibrate){ try{navigator.vibrate(10)}catch(_){} }
+    reels.dose.set(DOSES.indexOf(+b.dataset.dose)) });
   $('map').addEventListener('click',e=>{ const b=e.target.closest('[data-site]'); if(!b)return;
     if(navigator.vibrate){ try{navigator.vibrate(10)}catch(_){} }
-    reels.site.spinTo(SITES.findIndex(s=>s.id===b.dataset.site),2,700) });
+    reels.site.set(SITES.findIndex(s=>s.id===b.dataset.site)) });
 
   function localInput(t){ const d=new Date(t); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16) }
   $('when').value=localInput(Date.now());
@@ -341,14 +365,21 @@ input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px soli
     entries=entries.filter(e=>!e.ex);
     entries.push({id:'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),t,site:reels.site.value.id,dose:reels.dose.value,note:$('note').value.trim()});
     persist(); $('note').value=''; $('when').value=localInput(Date.now());
-    renderAll(); toast('已記錄：'+reels.site.value.name+' '+reels.dose.value+' mg');
+    const savedName=reels.site.value.name, savedDose=reels.dose.value;
+    reels.site.set(SITES.indexOf(recommend()));
+    renderAll(); toast('已記錄：'+savedName+' '+savedDose+' mg');
   });
 
   $('log').addEventListener('click',e=>{
-    const b=e.target.closest('.del'); if(!b)return;
-    if(!b.classList.contains('arm')){ document.querySelectorAll('.del.arm').forEach(x=>{x.classList.remove('arm');x.textContent='刪除'}); b.classList.add('arm'); b.textContent='確定刪除？'; return }
-    entries=entries.filter(x=>x.id!==b.dataset.id); persist(); renderAll(); toast('已刪除');
+    const del=e.target.closest('[data-del]');
+    if(del){
+      if(!del.classList.contains('arm')){ del.classList.add('arm'); del.textContent='再按一次確認刪除'; return }
+      entries=entries.filter(x=>x.id!==del.dataset.del); openId=null; persist(); renderAll(); toast('已刪除'); return;
+    }
+    const row=e.target.closest('[data-open]'); if(!row)return;
+    openId=openId===row.dataset.open?null:row.dataset.open; renderLog();
   });
+  $('more').addEventListener('click',()=>{ showAll=!showAll; renderLog(); });
   $('clearEx').addEventListener('click',()=>{ entries=entries.filter(e=>!e.ex); persist(); renderAll(); toast('已清除範例'); });
 
   // ---------- backup ----------
